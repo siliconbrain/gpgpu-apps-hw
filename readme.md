@@ -1,0 +1,1 @@
+# Homework for the GPGPU Applications course at BUTE, Spring 2017

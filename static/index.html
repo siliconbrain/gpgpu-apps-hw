@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link href="index.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.23.0/ramda.js" integrity="sha256-+tez7CrvhTdrcPOAdrghnMuXoaDM1SCmOIS6vZ0FuQU=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.3.2/gl-matrix-min.js" integrity="sha256-weRZDi4c8pbTZwXnc9tEJYb2O73W7+xxQFD1989qV74=" crossorigin="anonymous"></script>
+        <script id="vertex-shader" type="glsl">
+            attribute vec3 a_position;
+            attribute vec3 a_normal;
+            uniform mat4 u_pvmMatrix;
+            uniform mat4 u_vmitMatrix;
+            varying vec3 v_normal;
+
+            void main() {
+                v_normal = normalize((u_vmitMatrix * vec4(a_normal, 1.0)).xyz);
+                gl_Position = u_pvmMatrix * vec4(a_position, 1.0);
+            }
+        </script>
+        <script id="fragment-shader" type="glsl">
+            precision mediump float;
+            varying vec3 v_normal;
+
+            void main() {
+                gl_FragColor = gl_FrontFacing ? vec4(1, 0, 1, 1) : vec4(0, 1, 1, 1);
+                float ambientLuminosity = 0.5;
+                vec3 lightDir = normalize(vec4(-1, 0, 1, 1).xyz);
+                gl_FragColor.rgb *= max(0.0, dot(v_normal, lightDir) * (gl_FrontFacing ? 1.0 : -1.0)) * (1.0 - ambientLuminosity) + ambientLuminosity;
+            }
+        </script>
+        <script src="index.js"></script>
+    </head>
+    <body onload="init()">
+        <div id="left-pane">
+            <canvas></canvas>
+            <div id="model-controls">
+                <div>
+                    <label>expr: <input type="text" id="expr" value="fmin(fmax(sin((z + phi) * 2.0f), -0.7f), 0.7f) + 3.0f"/></label>
+                    <button id="submit">Submit</button>
+                </div>
+                <div>
+                    <label>φ<sub>min</sub>: <input type="number" id="phi-min" step="any" value="0.0"/></label>
+                    <label>φ<sub>max</sub>: <input type="number" id="phi-max" step="any" value="6.283185307179586"/></label>
+                    <label>φ<sub>res</sub>: <input type="number" id="phi-res" step="1" value="60"/></label>
+                </div>
+                <div>
+                    <label>z<sub>min</sub>: <input type="number" id="z-min" step="any" value="-5.0"/></label>
+                    <label>z<sub>max</sub>: <input type="number" id="z-max" step="any" value="5.0"/></label>
+                    <label>z<sub>res</sub>: <input type="number" id="z-res" min="1" step="1" value="50"/></label>
+                </div>
+            </div>
+        </div>
+        <div id="right-pane">
+            <div id="view-controls">
+                <div id="display-primitive-selector">
+                    <header>Display:</header>
+                    <div class="primitive-type">
+                        <label><input type="radio" name="primitive-type" value="POINTS" checked/> points</label>
+                    </div>
+                    <div class="primitive-type">
+                        <label><input type="radio" name="primitive-type" value="LINE_STRIP"/> line strip</label>
+                    </div>
+                    <div class="primitive-type">
+                        <label><input type="radio" name="primitive-type" value="TRIANGLES"/> triangles</label>
+                    </div>
+                </div>
+                <button id="reset-view-matrix">Reset view</button>
+            </div>
+        </div>
+    </body>
+</html>

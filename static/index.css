@@ -1,0 +1,72 @@
+html {
+    display: flex;
+    height: 100vh;
+}
+
+body {
+    display: flex;
+    flex-grow: 1;
+    font-family: sans-serif;
+}
+
+#left-pane {
+    align-content: stretch;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+#right-pane {
+    align-content: stretch;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+}
+
+canvas {
+    border: 1px solid #bbb;
+    flex-grow: 1;
+    margin: 1em;
+}
+
+#view-controls {
+    display: flex;
+    flex-direction: column;
+    padding: 1em;
+}
+
+#view-controls header {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#display-primitive-selector {
+    margin: 0.5em;
+}
+
+#display-primitive-selector .primitive-type {
+    display: flex;
+    white-space: nowrap;
+}
+
+#reset-view-matrix {
+    margin: 0.5em;
+}
+
+#model-controls {
+    display: flex;
+    flex-direction: column;
+    margin: 5px;
+}
+
+#model-controls > div {
+    display: flex;
+}
+#model-controls label {
+    display: flex;
+    flex-grow: 1;
+    margin: 5px;
+}
+#model-controls label input {
+    flex-grow: 1;
+}

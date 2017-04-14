@@ -5,7 +5,7 @@ vec2.angle = function(v) {
 };
 
 mat4.uniformScale = function(out, m, s) {
-    return mat4.scale(out, m, vec3.fromValues(s, s, s));
+    return mat4.scale(out, m, [s, s, s]);
 };
 
 function updateCanvasBackBufferSize(gl, scale=1) {
@@ -90,7 +90,7 @@ function init() {
     gl.enableVertexAttribArray(normalAttributeLocation);
 
     var modelMatrix = mat4.create();
-    var viewMatrix = mat4.fromTranslation([], vec3.fromValues(0, 0, -1));
+    var viewMatrix = mat4.fromTranslation([], [0, 0, -1]);
     var projectionMatrix = mat4.perspective([], Math.PI / 3, canvas.width / canvas.height, 0.01, 100);
 
     var pvmMatrixLocation = gl.getUniformLocation(program, "u_pvmMatrix");
@@ -112,11 +112,11 @@ function init() {
         if (geometry.vertices.length % 3 !== 0) console.error('|vs| % 3 != 0');
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.vertices), gl.STREAM_DRAW);
         gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.normals), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.normals), gl.STREAM_DRAW);
         gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
         return geometry;
@@ -145,9 +145,9 @@ function init() {
             var startL = vec2.length(startV);
             if (startL < sphereSize) {
                 var startVL = vec2.scale([], startV, 1 / sphereSize);
-                var startD = vec3.fromValues(startVL[0], startVL[1], Math.cos(Math.asin(clamp(-1.0, vec2.length(startVL), 1.0))));
+                var startD = [startVL[0], startVL[1], Math.cos(Math.asin(clamp(-1.0, vec2.length(startVL), 1.0)))];
                 var endVL = vec2.scale([], endV, 1 / sphereSize);
-                var endD = vec3.fromValues(endVL[0], endVL[1], Math.cos(Math.asin(clamp(-1.0, vec2.length(endVL), 1.0))));
+                var endD = [endVL[0], endVL[1], Math.cos(Math.asin(clamp(-1.0, vec2.length(endVL), 1.0)))];
                 var axis = [];
                 var angle = quat.getAxisAngle(axis, quat.rotationTo([], startD, endD));
                 vec3.transformMat4(axis, axis, mat4.invert([], modelMatrix));
@@ -155,7 +155,7 @@ function init() {
             } else {
                 var radial = vec2.length(endV) - startL;
                 var angle = vec2.angle(endV) - vec2.angle(startV);
-                mat4.rotate(modelMatrix, modelMatrix, angle, vec3.transformMat4([], vec3.fromValues(0, 0, 1), mat4.invert([], modelMatrix)));
+                mat4.rotate(modelMatrix, modelMatrix, angle, vec3.transformMat4([], [0, 0, 1], mat4.invert([], modelMatrix)));
                 mat4.uniformScale(viewMatrix, viewMatrix, 1.0 + radial * scaleFactor);
             }
             draw();
@@ -168,20 +168,21 @@ function init() {
 
     document.getElementById('submit').addEventListener('click', function() {
         getGeometry({
-            phi: {
-                min: parseFloat(document.getElementById('phi-min').value),
-                max: parseFloat(document.getElementById('phi-max').value),
-                res: parseInt(document.getElementById('phi-res').value)
+            u: {
+                min: parseFloat(document.getElementById('u-min').value),
+                max: parseFloat(document.getElementById('u-max').value),
+                res: parseInt(document.getElementById('u-res').value)
             },
-            z: {
-                min: parseFloat(document.getElementById('z-min').value),
-                max: parseFloat(document.getElementById('z-max').value),
-                res: parseInt(document.getElementById('z-res').value)
+            v: {
+                min: parseFloat(document.getElementById('v-min').value),
+                max: parseFloat(document.getElementById('v-max').value),
+                res: parseInt(document.getElementById('v-res').value)
             },
             expr: document.getElementById('expr').value,
+            conv: document.getElementById('conv').value,
         }).then(loadGeometry).then(function (geometry) {
             var size = R.splitEvery(3, geometry.vertices).map(v => vec3.length(v)).reduce(R.max, 0);
-            viewMatrix = mat4.uniformScale([], mat4.fromTranslation([], vec3.fromValues(0, 0, -1)), 0.5 / size);
+            viewMatrix = mat4.uniformScale([], mat4.fromTranslation([], [0, 0, -1]), 0.5 / size);
             draw = function() {
                 var viewModelMatrix = mat4.mul([], viewMatrix, modelMatrix);
                 gl.uniformMatrix4fv(pvmMatrixLocation, false, mat4.mul([], projectionMatrix, viewModelMatrix));
@@ -195,7 +196,7 @@ function init() {
         }, err => console.log(err));
     });
     document.getElementById('reset-view-matrix').addEventListener('click', function() {
-        viewMatrix = mat4.uniformScale([], mat4.fromTranslation([], vec3.fromValues(0, 0, -1)), 0.1);
+        viewMatrix = mat4.uniformScale([], mat4.fromTranslation([], [0, 0, -1]), 0.1);
         draw();
     });
 }

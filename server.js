@@ -34,63 +34,66 @@ const context = new nooocl.CLContext(device);
 
 const commandQueue = new nooocl.CLCommandQueue(context, device);
 
-const commonSource = `
-size_t getPointIndex(size_t u, size_t v, size_t stride) {
-    return (u % stride) + (v * stride);
-}
-`
-function getDynamicProgramSource({expr}) {
+function getDynamicProgramSource({expr, conv}) {
     return `
-float getRho(float phi, float z) {
+float getValueAt(float u, float v) {
     return ${expr || '0.0f'};
 }
 
-float3 toCartesian(float rho, float phi, float z) {
-    return (float3)(cos(phi) * rho, sin(phi) * rho, z);
+float3 toCartesian(float u, float v, float w) {
+    return (float3)(${conv || 'u, v, w'});
 }
 
 struct Params {
-    float phiMin;
-    float phiStep;
-    float zMin;
-    float zStep;
+    float uMin;
+    float uStep;
+    float vMin;
+    float vStep;
 };
 
-float3 getSurfacePoint(size_t u, size_t v, __constant struct Params *params) {
-    float phi = params->phiMin + u * params->phiStep;
-    float z = params->zMin + v * params->zStep;
-    return toCartesian(getRho(phi, z), phi, z);
+float3 getSurfacePoint(size_t ui, size_t vi, __constant struct Params *params) {
+    float u = params->uMin + ui * params->uStep;
+    float v = params->vMin + vi * params->vStep;
+    return toCartesian(u, v, getValueAt(u, v));
 }
-${commonSource}
+
+size_t getPointIndex(size_t ui, size_t vi, size_t stride) {
+    return ui + vi * stride;
+}
+
 __kernel void computePoints(__global float *points, __constant struct Params *params) {
     size_t stride = get_global_size(0);
-    size_t u = get_global_id(0);
-    size_t v = get_global_id(1);
+    size_t ui = get_global_id(0);
+    size_t vi = get_global_id(1);
 
-    vstore3(getSurfacePoint(u, v, params), getPointIndex(u, v, stride), points);
+    vstore3(getSurfacePoint(ui, vi, params), getPointIndex(ui, vi, stride), points);
 }
 `;
 }
-const staticProgramSource = commonSource + `
-size_t getQuadIndex(size_t u, size_t v, size_t stride) {
-    return (u % stride) + (v * stride);
+const staticProgramSource = `
+size_t getPointIndex(size_t ui, size_t vi, size_t stride) {
+    return ui + vi * (stride + 1);
 }
 
-size_t getTriangleIndex(size_t u, size_t v, size_t w, size_t stride) {
-    return getQuadIndex(u, v, stride) * 2 + w;
+size_t getQuadIndex(size_t ui, size_t vi, size_t stride) {
+    return ui + vi * stride;
+}
+
+size_t getTriangleIndex(size_t ui, size_t vi, size_t wi, size_t stride) {
+    return getQuadIndex(ui, vi, stride) * 2 + wi;
 }
 
 __kernel void computeMesh(__global const float *points, __global float *vertices, __global float *normals) {
     size_t stride = get_global_size(0);
-    size_t u = get_global_id(0);
-    size_t v = get_global_id(1);
-    size_t w = get_global_id(2);
+    size_t ui = get_global_id(0);
+    size_t vi = get_global_id(1);
+    size_t wi = get_global_id(2);
 
-    float3 v0 = vload3(getPointIndex(u, v, stride), points);
-    float3 v1 = vload3(getPointIndex(u + 1, v, stride) * (1 - w) + getPointIndex(u + 1, v + 1, stride) * w, points);
-    float3 v2 = vload3(getPointIndex(u + 1, v + 1, stride) * (1 - w) + getPointIndex(u, v + 1, stride) * w, points);
+    float3 v0 = vload3(getPointIndex(ui, vi, stride), points);
+    float3 v1 = vload3(getPointIndex(ui + 1, vi, stride) * (1 - wi) + getPointIndex(ui + 1, vi + 1, stride) * wi, points);
+    float3 v2 = vload3(getPointIndex(ui + 1, vi + 1, stride) * (1 - wi) + getPointIndex(ui, vi + 1, stride) * wi, points);
 
-    size_t ti = getTriangleIndex(u, v, w, stride);
+    size_t ti = getTriangleIndex(ui, vi, wi, stride);
 
     vstore3(v0, 3 * ti + 0, vertices);
     vstore3(v1, 3 * ti + 1, vertices);
@@ -153,34 +156,38 @@ buildProgram(staticProgram).then(staticBuildResults => {
         logBuildResults(staticBuildResults);
         throw new Error(`Static program build failure.`);
     } else {
-        function getGeometry({phi, z, expr}) {
-            var z_step = getStep(z);
-            var phi_step = getStep(phi);
+        function getGeometry({u, v, expr, conv}) {
+            var uStep = getStep(u);
+            var vStep = getStep(v);
 
-            const dynamicProgram = context.createProgram(getDynamicProgramSource({expr}));
+            const dynamicProgram = context.createProgram(getDynamicProgramSource({expr, conv}));
             return buildProgram(dynamicProgram).then(dynamicBuildResults => {
                 console.log(`Dynamic program build finished.`);
                 if (dynamicBuildResults.some(isError)) {
                     console.error(`Some build(s) failed.`);
                     logBuildResults(dynamicBuildResults);
                 } else {
-                    const numOfPoints = (z.res + 1) * phi.res;
+                    const numOfPoints = (u.res + 1) * (v.res + 1);
                     const points = new nooocl.CLBuffer(context, host.cl.defs.CL_MEM_READ_WRITE, ref.types.float.size * 3 * numOfPoints);
 
-                    const numOfVertices = z.res * phi.res * 2 * 3;
-                    const vertices = new nooocl.CLBuffer(context, host.cl.defs.CL_MEM_WRITE_ONLY, ref.types.float.size * 3 * numOfVertices);
+                    const numOfFloatsInVertex = 3;
+                    const numOfVerticesInTriangle = 3;
+                    const numOfTrianglesInPatch = 2;
+                    const numOfPatches = u.res * v.res;
+                    const numOfVertices = numOfPatches * numOfTrianglesInPatch * numOfVerticesInTriangle;
+                    const vertices = new nooocl.CLBuffer(context, host.cl.defs.CL_MEM_WRITE_ONLY, ref.types.float.size * numOfFloatsInVertex * numOfVertices);
                     const vertexBuffer = Buffer.alloc(vertices.size);
-                    const normals = new nooocl.CLBuffer(context, host.cl.defs.CL_MEM_WRITE_ONLY, ref.types.float.size * 3 * numOfVertices);
+                    const normals = new nooocl.CLBuffer(context, host.cl.defs.CL_MEM_WRITE_ONLY, ref.types.float.size * numOfFloatsInVertex * numOfVertices);
                     const normalBuffer = Buffer.alloc(normals.size);
                     console.log(`Buffers allocated.`);
 
-                    const paramsBuffer = setBuffer(Buffer.alloc(ref.types.float.size * 4), ...[phi.min, phi_step, z.min, z_step].map(value => ({ type: ref.types.float, value})));
-                    const params = new nooocl.CLBuffer(context, host.cl.defs.CL_MEM_READ_ONLY, ref.types.float.size * 4);
+                    const paramsBuffer = setBuffer(Buffer.alloc(ref.types.float.size * 4), ...[u.min, uStep, v.min, vStep].map(value => ({ type: ref.types.float, value})));
+                    const params = new nooocl.CLBuffer(context, host.cl.defs.CL_MEM_READ_ONLY, paramsBuffer.length);
                     return commandQueue.waitable().enqueueWriteBuffer(params, 0, params.size, paramsBuffer).promise.then(() => {
                         console.log(`Params buffer write done.`);
                         const computePointsKernel = dynamicProgram.createKernel('computePoints');
                         computePointsKernel.setArgs(points, params);
-                        return commandQueue.waitable().enqueueNDRangeKernel(computePointsKernel, new nooocl.NDRange(phi.res, z.res + 1)).promise.then(() => {
+                        return commandQueue.waitable().enqueueNDRangeKernel(computePointsKernel, new nooocl.NDRange(u.res + 1, v.res + 1)).promise.then(() => {
                             console.log(`Points computed.`);
                             computePointsKernel.release();
                             params.release();
@@ -188,7 +195,7 @@ buildProgram(staticProgram).then(staticBuildResults => {
                     }).then(() => {
                         const computeMeshKernel = staticProgram.createKernel('computeMesh');
                         computeMeshKernel.setArgs(points, vertices, normals);
-                        return commandQueue.waitable().enqueueNDRangeKernel(computeMeshKernel, new nooocl.NDRange(phi.res, z.res, 2)).promise.then(() => {
+                        return commandQueue.waitable().enqueueNDRangeKernel(computeMeshKernel, new nooocl.NDRange(u.res, v.res, 2)).promise.then(() => {
                             console.log(`Mesh computed.`);
                             computeMeshKernel.release();
                             points.release();

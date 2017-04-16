@@ -96,6 +96,8 @@ function init() {
     var pvmMatrixLocation = gl.getUniformLocation(program, "u_pvmMatrix");
     var vmitMatrixLocation = gl.getUniformLocation(program, "u_vmitMatrix");
 
+    gl.uniform1f(gl.getUniformLocation(program, 'u_pointSize'), 1.0);
+    
     var coordVertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, coordVertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1]), gl.STATIC_DRAW);

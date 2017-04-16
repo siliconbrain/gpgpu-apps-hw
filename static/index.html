@@ -8,11 +8,13 @@
         <script id="vertex-shader" type="glsl">
             attribute vec3 a_position;
             attribute vec3 a_normal;
+            uniform float u_pointSize;
             uniform mat4 u_pvmMatrix;
             uniform mat4 u_vmitMatrix;
             varying vec3 v_normal;
 
             void main() {
+                gl_PointSize = u_pointSize;
                 v_normal = normalize((u_vmitMatrix * vec4(a_normal, 1.0)).xyz);
                 gl_Position = u_pvmMatrix * vec4(a_position, 1.0);
             }

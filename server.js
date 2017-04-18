@@ -41,7 +41,7 @@ float getValueAt(float u, float v) {
 }
 
 float3 toCartesian(float u, float v, float w) {
-    return (float3)(${conv || 'u, v, w'});
+    return (float3)(${conv.x || 'u'}, ${conv.y || 'v'}, ${conv.z || 'w'});
 }
 
 struct Params {

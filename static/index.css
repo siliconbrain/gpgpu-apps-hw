@@ -63,11 +63,47 @@ canvas {
 #model-controls > div {
     display: flex;
 }
-#model-controls label {
+
+#model-controls .parameter-triplet {
     display: flex;
-    flex-grow: 1;
+    flex-direction: column;
+}
+
+#model-controls label,
+#model-controls button {
     margin: 5px;
 }
-#model-controls label input {
+
+#model-controls label {
+    display: flex;
+    flex-grow: 5;
+    justify-content: space-between;
+}
+
+#model-controls label > span {
+    margin-right: 0.5em; 
+}
+
+#model-controls label > input[type="number"] {
+    max-width: 10.5em;
+}
+
+#model-controls > div:first-child {
+    display: flex;
+}
+
+#w-expr {
     flex-grow: 1;
+}
+
+#submit {
+    flex-grow: 1;
+}
+
+#coordinate-expressions {
+    margin-right: 1em;
+}
+
+#coordinate-expressions input {
+    min-width: 15em;
 }

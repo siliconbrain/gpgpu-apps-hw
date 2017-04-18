@@ -35,23 +35,59 @@
     <body onload="init()">
         <div id="left-pane">
             <canvas></canvas>
-            <div id="model-controls">
+            <section id="model-controls">
                 <div>
-                    <label>expr: <input type="text" id="expr" value="fmin(fmax(sin((u + v) * 2.0f), -0.7f), 0.7f) + 3.0f"/></label>
-                    <label>conv: <input type="text" id="conv" value="cos(u) * w, sin(u) * w, v"/></label>
+                    <label>
+                        <span>w: </span>
+                        <input type="text" id="w-expr"/>
+                    </label>
                     <button id="submit">Submit</button>
                 </div>
                 <div>
-                    <label>u<sub>min</sub>: <input type="number" id="u-min" step="any" value="0.0"/></label>
-                    <label>u<sub>max</sub>: <input type="number" id="u-max" step="any" value="6.283185307179586"/></label>
-                    <label>u<sub>res</sub>: <input type="number" id="u-res" step="1" value="60"/></label>
+                    <div id="coordinate-expressions" class="parameter-triplet">
+                        <label>
+                            <span>x: </span>
+                            <input type="text" id="x-expr"/>
+                        </label>
+                        <label>
+                            <span>y: </span>
+                            <input type="text" id="y-expr"/>
+                        </label>
+                        <label>
+                            <span>z: </span>
+                            <input type="text" id="z-expr"/>
+                        </label>
+                    </div>
+                    <div class="parameter-triplet">
+                        <label>
+                            <span>u<sub>min</sub>: </span>
+                            <input type="number" id="u-min" step="any" value="0.0"/>
+                        </label>
+                        <label>
+                            <span>u<sub>max</sub>: </span>
+                            <input type="number" id="u-max" step="any" value="0.0"/>
+                        </label>
+                        <label>
+                            <span>u<sub>res</sub>: </span>
+                            <input type="number" id="u-res" step="1" value="1"/>
+                        </label>
+                    </div>
+                    <div class="parameter-triplet">
+                        <label>
+                            <span>v<sub>min</sub>: </span>
+                            <input type="number" id="v-min" step="any" value="0.0"/>
+                        </label>
+                        <label>
+                            <span>v<sub>max</sub>: </span>
+                            <input type="number" id="v-max" step="any" value="0.0"/>
+                        </label>
+                        <label>
+                            <span>v<sub>res</sub>: </span>
+                            <input type="number" id="v-res" min="1" step="1" value="1"/>
+                        </label>
+                    </div>
                 </div>
-                <div>
-                    <label>v<sub>min</sub>: <input type="number" id="v-min" step="any" value="-5.0"/></label>
-                    <label>v<sub>max</sub>: <input type="number" id="v-max" step="any" value="5.0"/></label>
-                    <label>v<sub>res</sub>: <input type="number" id="v-res" min="1" step="1" value="50"/></label>
-                </div>
-            </div>
+            </section>
         </div>
         <div id="right-pane">
             <div id="view-controls">
@@ -69,6 +105,8 @@
                 </div>
                 <button id="reset-view-matrix">Reset view</button>
             </div>
+            <dev id="debug">
+            </dev>
         </div>
     </body>
 </html>

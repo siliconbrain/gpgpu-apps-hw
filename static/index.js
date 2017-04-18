@@ -64,7 +64,48 @@ function getGeometry(params) {
     }).then(response => response.json());
 }
 
+function getURL() {
+    var params = [
+        ['w', 'w-expr'],
+        ['x', 'x-expr'],
+        ['y', 'y-expr'],
+        ['z', 'z-expr'],
+        ['u-min', 'u-min'],
+        ['u-max', 'u-max'],
+        ['u-res', 'u-res'],
+        ['v-min', 'v-min'],
+        ['v-max', 'v-max'],
+        ['v-res', 'v-res'],
+    ];
+    return `${location.protocol}//${location.host}/?` + params.map(([key, id]) => `${key}=${encodeURIComponent(document.getElementById(id).value)}`).join('&');
+}
+
 function init() {
+    if (location.search) {
+        var query = location.search
+            .slice(1)  // remove leading '?'
+            .split('&')
+            .map(part => part.split('='))
+            .reduce((query, [key, value]) => { query[key] = value; return query; }, {});
+
+        var mapping = {
+            'w': 'w-expr',
+            'x': 'x-expr',
+            'y': 'y-expr',
+            'z': 'z-expr',
+            'u-min': 'u-min',
+            'u-max': 'u-max',
+            'u-res': 'u-res',
+            'v-min': 'v-min',
+            'v-max': 'v-max',
+            'v-res': 'v-res',
+        };
+
+        Object.keys(query).forEach(key => {
+            if (mapping[key]) document.getElementById(mapping[key]).value = decodeURIComponent(query[key]);
+        });
+    }
+
     var canvas = document.querySelector('canvas');
     var vertexShaderSource = document.getElementById('vertex-shader').innerText;
     var fragmentShaderSource = document.getElementById('fragment-shader').innerText;
@@ -218,8 +259,12 @@ function init() {
                 max: parseFloat(document.getElementById('v-max').value),
                 res: parseInt(document.getElementById('v-res').value)
             },
-            expr: document.getElementById('expr').value,
-            conv: document.getElementById('conv').value,
+            expr: document.getElementById('w-expr').value,
+            conv: {
+                x: document.getElementById('x-expr').value,
+                y: document.getElementById('y-expr').value,
+                z: document.getElementById('z-expr').value,
+            },
         }).then(loadGeometry).then(function (geometry) {
             var size = R.splitEvery(3, geometry.vertices).map(v => vec3.length(v)).reduce(R.max, 0);
             viewMatrix = mat4.uniformScale([], mat4.fromTranslation([], [0, 0, -1]), 0.5 / size);

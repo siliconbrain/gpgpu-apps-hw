@@ -136,14 +136,14 @@ function init() {
         var scaleFactor = 2;
         var sphereSize = 0.7;
         if (e.buttons === 1) {
-            var endV = vec2.fromValues(
+            var endV = [
                 2.0 * e.clientX / e.target.clientWidth - 1.0,
                 -2.0 * e.clientY / e.target.clientHeight + 1.0
-            );
-            var startV = vec2.fromValues(
+            ];
+            var startV = [
                 2.0 * (e.clientX - e.movementX) / e.target.clientWidth - 1.0,
                 -2.0 * (e.clientY - e.movementY) / e.target.clientHeight + 1.0
-            );
+            ];
             var startL = vec2.length(startV);
             if (startL < sphereSize) {
                 var startVL = vec2.scale([], startV, 1 / sphereSize);
@@ -162,6 +162,44 @@ function init() {
             }
             draw();
         }
+    });
+
+    canvas.addEventListener('touchstart', function (e) {
+        var scaleFactor = 2;
+        var sphereSize = 0.7;
+        var startV = [
+            2.0 * e.targetTouches[0].clientX / e.target.clientWidth - 1.0,
+            -2.0 * e.targetTouches[0].clientY / e.target.clientHeight + 1.0
+        ];
+        
+        function onTouchMove(e) {
+            var endV = [
+                2.0 * e.targetTouches[0].clientX / e.target.clientWidth - 1.0,
+                -2.0 * e.targetTouches[0].clientY / e.target.clientHeight + 1.0
+            ];
+
+            var startL = vec2.length(startV);
+            if (startL < sphereSize) {
+                var startVL = vec2.scale([], startV, 1 / sphereSize);
+                var startD = [startVL[0], startVL[1], Math.cos(Math.asin(clamp(-1.0, vec2.length(startVL), 1.0)))];
+                var endVL = vec2.scale([], endV, 1 / sphereSize);
+                var endD = [endVL[0], endVL[1], Math.cos(Math.asin(clamp(-1.0, vec2.length(endVL), 1.0)))];
+                var axis = [];
+                var angle = quat.getAxisAngle(axis, quat.rotationTo([], startD, endD));
+                vec3.transformMat4(axis, axis, mat4.invert([], modelMatrix));
+                mat4.rotate(modelMatrix, modelMatrix, angle, axis);
+            } else {
+                var radial = vec2.length(endV) - startL;
+                var angle = vec2.angle(endV) - vec2.angle(startV);
+                mat4.rotate(modelMatrix, modelMatrix, angle, vec3.transformMat4([], [0, 0, 1], mat4.invert([], modelMatrix)));
+                mat4.uniformScale(viewMatrix, viewMatrix, 1.0 + radial * scaleFactor);
+            }
+            draw();
+
+            startV = endV;
+        }
+        canvas.addEventListener('touchmove', onTouchMove);
+        canvas.addEventListener('touchend', () => canvas.removeEventListener('touchmove', onTouchMove));
     });
 
     document.querySelectorAll('input[name="primitive-type"]').forEach(elem => elem.addEventListener('change', () => {

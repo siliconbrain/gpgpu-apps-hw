@@ -40,11 +40,13 @@ canvas {
     font-weight: bold;
 }
 
-#display-primitive-selector {
+.view-control-group {
+    display: flex;
+    flex-direction: column;
     margin: 0.5em;
 }
 
-#display-primitive-selector .primitive-type {
+.view-control-group label {
     display: flex;
     white-space: nowrap;
 }

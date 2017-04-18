@@ -91,17 +91,16 @@
         </div>
         <div id="right-pane">
             <div id="view-controls">
-                <div id="display-primitive-selector">
+                <div id="display-primitive-selector" class="view-control-group">
                     <header>Display:</header>
-                    <div class="primitive-type">
-                        <label><input type="radio" name="primitive-type" value="POINTS" checked/> points</label>
-                    </div>
-                    <div class="primitive-type">
-                        <label><input type="radio" name="primitive-type" value="LINE_STRIP"/> line strip</label>
-                    </div>
-                    <div class="primitive-type">
-                        <label><input type="radio" name="primitive-type" value="TRIANGLES"/> triangles</label>
-                    </div>
+                    <label class="primitive-type"><input type="radio" name="primitive-type" value="POINTS" checked/> points</label>
+                    <label class="primitive-type"><input type="radio" name="primitive-type" value="LINE_STRIP"/> line strip</label>
+                    <label class="primitive-type"><input type="radio" name="primitive-type" value="TRIANGLES"/> triangles</label>
+                </div>
+                <div class="view-control-group">
+                    <header>Projection:</header>
+                    <label><input type="radio" name="projection-mode" value="perspective" checked/> perspective</label>
+                    <label><input type="radio" name="projection-mode" value="orthogonal"/> orthogonal</label>
                 </div>
                 <button id="reset-view-matrix">Reset view</button>
             </div>

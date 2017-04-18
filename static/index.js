@@ -247,6 +247,18 @@ function init() {
         draw();
     }));
 
+    document.querySelectorAll('input[name="projection-mode"]').forEach(elem => elem.addEventListener('change', (e) => {
+        switch(e.target.value) {
+            case 'perspective':
+                projectionMatrix = mat4.perspective([], Math.PI / 3, canvas.width / canvas.height, 0.01, 100);
+                break;
+            case 'orthogonal':
+                projectionMatrix = mat4.ortho([], -0.5 * canvas.width / canvas.height, 0.5 * canvas.width / canvas.height, -0.5, 0.5, 0.01, 100);
+                break;
+        }
+        draw();
+    }))
+
     document.getElementById('submit').addEventListener('click', function() {
         getGeometry({
             u: {
@@ -266,8 +278,8 @@ function init() {
                 z: document.getElementById('z-expr').value,
             },
         }).then(loadGeometry).then(function (geometry) {
-            var size = R.splitEvery(3, geometry.vertices).map(v => vec3.length(v)).reduce(R.max, 0);
-            viewMatrix = mat4.uniformScale([], mat4.fromTranslation([], [0, 0, -1]), 0.5 / size);
+            var geometrySize = R.splitEvery(3, geometry.vertices).map(v => vec3.length(v)).reduce(R.max, 0);
+            viewMatrix = mat4.uniformScale([], mat4.fromTranslation([], [0, 0, -1]), 0.5 / geometrySize);
             draw = function() {
                 var viewModelMatrix = mat4.mul([], viewMatrix, modelMatrix);
                 gl.uniformMatrix4fv(pvmMatrixLocation, false, mat4.mul([], projectionMatrix, viewModelMatrix));

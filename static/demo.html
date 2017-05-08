@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>HW presentation demo</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                margin: 8px 32px;
+            }
+            h1 {
+                text-align: center;
+            }
+            a {
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Demo</h1>
+        <h2>Cartesian</h2>
+        <ul>
+            <li><a href="/?w=0.0f&x=u&y=v&z=w&u-min=-6.283185307179586&u-max=6.283185307179586&u-res=60&v-min=-5.0&v-max=5.0&v-res=50">Plane</a></li>
+            <li><a href="/?w=sin(u)%20%2B%20sin(v)&x=u&y=v&z=w&u-min=-6.283185307179586&u-max=6.283185307179586&u-res=60&v-min=-5.0&v-max=5.0&v-res=50">Wave</a></li>
+        </ul>
+        <h2>Cylindrical</h2>
+        <ul>
+            <li><a href="/?w=3.0f&x=cos(u)%20*%20w&y=sin(u)%20*%20w&z=v&u-min=0.0&u-max=6.283185307179586&u-res=60&v-min=-5.0&v-max=5.0&v-res=50">Cylinder</a></li>
+            <li><a href="/?w=3.0f%20%2B%200.3f%20*%20sin(6.0f%20*%20v)&x=cos(u)%20*%20w&y=sin(u)%20*%20w&z=v&u-min=0.0&u-max=6.283185307179586&u-res=120&v-min=-3.14159265359&v-max=3.14159265359&v-res=120">Rippled cylinder</a></li>
+            <li><a href="/?w=fmin(fmax(sin((u%20%2B%20v)%20*%202.0f)%2C%20-0.7f)%2C%200.7f)%20%2B%203.0f&x=cos(u)%20*%20w&y=sin(u)%20*%20w&z=v&u-min=0.0&u-max=6.283185307179586&u-res=60&v-min=-5.0&v-max=5.0&v-res=50">Worm gear</a></li>
+            <li><a href="/?w=0.4f%20%2B%20(fabs(v)%20%3C%200.2%20%3F%204.0f%20%2B%20fmin(0.3f%2C%20fmax(-0.3f%2C%20sin(20.0f%20*%20u)))%20%3A%200.0)&x=cos(u)%20*%20w&y=sin(u)%20*%20w&z=v&u-min=0.0&u-max=6.283185307179586&u-res=360&v-min=-2.0&v-max=2.0&v-res=50">Gear</a></li>
+            <li><a href="/?w=0.4f%20%2B%20(fabs(v)%20%3C%200.2%20%3F%204.0f%20%2B%20fmin(0.3f%2C%20fmax(-0.3f%2C%20sin(23.0f%20*%20u)))%20%3A%200.0)&x=cos(u)%20*%20w&y=sin(u)%20*%20w&z=v&u-min=0.0&u-max=1.0471975512&u-res=360&v-min=-2.0&v-max=2.0&v-res=50">Partial gear</a></li>
+        </ul>
+        <h2>Spherical</h2>
+        <ul>
+            <li><a href="/?w=3.0f&x=cos(u)%20*%20sin(v)%20*%20w&y=sin(u)%20*%20sin(v)%20*%20w&z=cos(v)%20*%20w&u-min=0.0&u-max=6.283185307179586&u-res=60&v-min=-3.14159265359&v-max=0&v-res=60">Sphere</a></li>
+            <li><a href="/?w=3.0f%20%2B%200.3f%20*%20sin(15.0f%20*%20v)&x=cos(u)%20*%20sin(v)%20*%20w&y=sin(u)%20*%20sin(v)%20*%20w&z=cos(v)%20*%20w&u-min=0.0&u-max=6.283185307179586&u-res=240&v-min=-3.14159265359&v-max=0&v-res=240">Rippled sphere</a></li>
+        </ul>
+    </body>
+</html>
